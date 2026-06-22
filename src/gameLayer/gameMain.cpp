@@ -29,10 +29,10 @@ bool initGame()
 
     generateWorld(gameData.gameMap);
 
-    gameData.camera.target = {0, 0};
+    gameData.camera.target = {20, 120};
     gameData.camera.rotation = 0.0f;
     gameData.camera.zoom = 100.0f;
-
+    
 	return true;
 }
 

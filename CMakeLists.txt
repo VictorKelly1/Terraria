@@ -28,6 +28,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_subdirectory(thirdparty/raylib-5.0)
 add_subdirectory(thirdparty/imgui-docking)
 add_subdirectory(thirdparty/rlImgui)
+add_subdirectory(thirdparty/FastNoiseSIMD)
 
 
 # MY_SOURCES is defined to be a list of all the source files for my game 
@@ -88,7 +89,12 @@ target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC "${CMAKE_CURRENT_SOURC
 
 
 # Link raylib library statically, Here wou would add other libraries!
-target_link_libraries("${CMAKE_PROJECT_NAME}" PRIVATE raylib_static imgui rlimgui )
-
+target_link_libraries("${CMAKE_PROJECT_NAME}"
+    PRIVATE
+    raylib_static
+    imgui
+    rlimgui
+    fastNoiseSIMD
+)
 
 

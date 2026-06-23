@@ -3,6 +3,7 @@
 #include "gameMap.hpp"
 #include "randomStuff.hpp"
 #include <FastNoiseSIMD.h>
+#include <algorithm>
 #include <cstdlib>
 #include <memory>
 #include <random>
@@ -144,59 +145,92 @@ void generateWorld(GameMap &gameMap, int seed){
     FastNoiseSIMD::FreeNoiseSet(stoneNoise);
     FastNoiseSIMD::FreeNoiseSet(cavesNoise);
 
+    
+#pragma region perlin worms
 
-    /*for (auto i{0}; i < 20; ++i){
-        float x = getRandomInt(rng, 10, w - 10);
-        float y = getRandomInt(rng, 51, h - 10);
+	for (int i = 0; i < 20; i++)
+	{
 
-        float dirtX = (getRandomFloat(rng, -1, 1));
-        float dirtY = (getRandomFloat(rng, -1, 1));
+		// pick a random starting point
+		//it's important for x and y to be floats
+		float x = getRandomInt(rng, 10, w - 10);
+		float y = getRandomInt(rng, 51, h - 10);
 
-        int wormLength = getRandomInt(rng, 5, 20);
-        float radius = 2.5f;
 
-        int changeDirectionTime = getRandomInt(rng, 5, 20);
+		// Initial movement direction (-1 to 1 range)
+		float dirX = (getRandomFloat(rng, -1, 1));
+		float dirY = (getRandomFloat(rng, -1, 1));
 
-        for(auto j{0}; j < wormLength; ++j){
-            int intRadius = std::ceil(radius);
 
-            for(auto ox {-intRadius}; ox <= intRadius; ++ox){
-                for (auto oy {-intRadius}; oy <= intRadius; ++oy){
-                    float distSq = ox * ox + oy;
-                    if(distSq <= radius * radius){
-                        int digX = x + ox;
-                        int digY = y + oy;
+		int wormLength = getRandomInt(rng, 200, 700);
+		float radius = 2.5f;
 
-                        auto b = gameMap.getBlockSafe(digX, digY);
+		int changeDirectionTime = getRandomInt(rng, 5, 20);
 
-                        if(b){
-                            b->type = Block::air;
-                        }
-                    }
-                }
-            }
+		for (int j = 0; j < wormLength; j++)
+		{
+			// dig a circle around current position
+			int intRadius = std::ceil(radius);
+			for (int ox = -intRadius; ox <= intRadius; ox++)
+			{
+				for (int oy = -intRadius; oy <= intRadius; oy++)
+				{
+					float distSq = ox * ox + oy * oy;
+					if (distSq <= radius * radius)
+					{
+						int digX = x + ox;
+						int digY = y + oy;
 
-            changeDirectionTime--;
+						auto b = gameMap.getBlockSafe(digX, digY);
+						if (b)
+						{
+							b->type = Block::air;
+						}
+					}
+				}
+			}
 
-            if (changeDirectionTime <= 0){
-                changeDirectionTime = getRandomInt(rng, 5, 20);
+			changeDirectionTime--;
+			if (changeDirectionTime <= 0)
+			{
+				changeDirectionTime = getRandomInt(rng, 5, 20);
 
-                if (getRandomChance(rng, 0.7)){
-                    float keepFactor = 0.8;
+				if (getRandomChance(rng, 0.7))
+				{
+					float keepFactor = 0.8;
 
-                    //big chance we keep a very similar direction
-                    dirX = dirX * keepFactor + (getRandomFloat(rng, -1, 1)) * (1.f - keepFactor);
-                    dirY = dirY * keepFactor + (getRandomFloat(rng, -1, 1)) * (1.f - keepFactor);
-                }
-                else{
-                    float keepFactor = 0.2;
+					//big chance we keep a very similar direction
+					dirX = dirX * keepFactor + (getRandomFloat(rng, -1, 1)) * (1.f - keepFactor);
+					dirY = dirY * keepFactor + (getRandomFloat(rng, -1, 1)) * (1.f - keepFactor);
 
-                    //big chance we keep a very similar direction
-                    dirX = dirX * keepFactor + (getRandomFloat(rng, -1, 1)) * (1.f - keepFactor);
-                    dirY = dirY * keepFactor + (getRandomFloat(rng, -1, 1)) * (1.f - keepFactor);
-                }
-            }
-        }
+				}
+				else
+				{
+					float keepFactor = 0.2;
 
-    }*/ 
+					//big chance we keep a very similar direction
+					dirX = dirX * keepFactor + (getRandomFloat(rng, -1, 1)) * (1.f - keepFactor);
+					dirY = dirY * keepFactor + (getRandomFloat(rng, -1, 1)) * (1.f - keepFactor);
+				}
+
+
+			}
+
+			// Move forward
+			x += dirX * 1.5f;
+			y += dirY * 1.5f;
+
+
+			// Random radius wobble
+			radius += (getRandomFloat(rng, -0.2, 0.2));
+			radius = std::clamp(radius, 2.2f, 8.5f);
+		}
+
+
+	}
+
+
+#pragma endregion
+
+
 }

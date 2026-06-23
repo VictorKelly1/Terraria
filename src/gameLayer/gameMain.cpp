@@ -18,9 +18,13 @@ struct GameData
     GameMap gameMap;
     Camera2D camera;
 
+    int creativeSelectedBlock = Block::dirt;
+
 }gameData;
 
 AssetManager assetManager;
+
+bool showImgui = false;
 
 bool initGame()
 {
@@ -45,6 +49,9 @@ bool updateGame()
 
     ClearBackground({75, 75, 150, 255});
 
+    //
+    if (IsKeyPressed(KEY_F10)) { showImgui = !showImgui; }
+
 #pragma region camera movement
 
     if(IsKeyDown(KEY_LEFT)) gameData.camera.target.x -= 7.f * deltaTime;
@@ -58,22 +65,26 @@ bool updateGame()
     int blockX = (int)std::floor(worldPos.x);
     int blockY = (int)std::floor(worldPos.y);
 
-    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
-        auto b = gameData.gameMap.getBlockSafe(blockX, blockY);
+    if(gameData.creativeSelectedBlock < 0) {gameData.creativeSelectedBlock = 0; }
+    if(gameData.creativeSelectedBlock >= Block::BLOCKS_COUNT) { gameData.creativeSelectedBlock = Block::BLOCKS_COUNT + 1; }
 
-        if(b) {
-            *b = {};
+    if(!showImgui){
+        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+            auto b = gameData.gameMap.getBlockSafe(blockX, blockY);
+
+            if(b) {
+                *b = {};
+            }
+        }
+
+        if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
+            auto b = gameData.gameMap.getBlockSafe(blockX, blockY);
+
+            if(b){
+                b->type = gameData.creativeSelectedBlock;
+            }
         }
     }
-
-    if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
-        auto b = gameData.gameMap.getBlockSafe(blockX, blockY);
-
-        if(b){
-            b->type = Block::gold;
-        }
-    }
-
     BeginMode2D(gameData.camera);
 
     Vector2 topLeftView = GetScreenToWorld2D({0, 0}, gameData.camera);
@@ -121,11 +132,37 @@ bool updateGame()
 
     EndMode2D();
 
-    ImGui::Begin("Game controll");
+    if(showImgui){
+        ImGui::Begin("Game controll");
 
-    ImGui::SliderFloat("Camera Zoom:", &gameData.camera.zoom, 10, 150);
+        ImGui::SliderFloat("Camera Zoom:", &gameData.camera.zoom, 10, 150);
 
-    ImGui::End();
+        ImGui::Separator();
+
+        for(auto i{0}; i < Block::BLOCKS_COUNT; ++i){
+            auto atlas = getTextureAtlas(i, 0, 32, 32);
+            atlas.x /= assetManager.textures.width;
+            atlas.width /= assetManager.textures.width;
+            atlas.y /= assetManager.textures.height;
+            atlas.height /= assetManager.textures.height;
+
+            ImGui::PushID(i);
+
+            ImTextureID tex = ( ImTextureID)(intptr_t)assetManager.textures.id;
+            if(ImGui::ImageButton(tex, {35, 35}, {atlas.x, atlas.y}, {atlas.x + atlas.width, atlas.y + atlas.height})){
+                gameData.creativeSelectedBlock = i;
+            }
+
+            ImGui::PopID();
+            
+            if(i % 10 != 0 ){
+                ImGui::SameLine();
+            }
+        }
+
+
+        ImGui::End();
+    }
 
     DrawFPS(10, 10);
 

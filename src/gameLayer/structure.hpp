@@ -16,6 +16,8 @@ struct Structure {
     void create(int x, int h);
 
     Block &getBlockUnsafe(int x, int h);
-    Block *getBlockSafe(int x, int y);
+    Block *getBlockSafe(int x, int h);
      
+    void copyFromMap(GameMap &map, Vector2 start, Vector2 end);
+    void pasteIntoMap(GameMap &map, Vector2 start);
 };

@@ -2,10 +2,14 @@
 #include "blocks.hpp"
 #include "gameMap.hpp"
 #include "randomStuff.hpp"
+#include "raylib.h"
+#include "saveMap.hpp"
+#include "structure.hpp"
 #include <FastNoiseSIMD.h>
 #include <algorithm>
 #include <cstdlib>
 #include <memory>
+#include <numeric>
 #include <random>
 #include <unistd.h>
 
@@ -21,6 +25,9 @@ void generateWorld(GameMap &gameMap, int seed){
     int desertStart = getRandomInt(rng, 10, w - 210);
     int desertEnd = desertStart + 100 + getRandomInt(rng, 0, 100);
     if (desertEnd > w) { desertEnd = w; }
+
+    Structure treeStructure;
+    loadBlockDataFromFile(treeStructure.mapData, treeStructure.w, treeStructure.h, RESOURCES_PATH "structures/tree.bin");
 
     std::unique_ptr<FastNoiseSIMD> dirtNoiseGenerator(FastNoiseSIMD::NewFastNoiseSIMD());
     std::unique_ptr<FastNoiseSIMD> stoneNoiseGenerator(FastNoiseSIMD::NewFastNoiseSIMD());
@@ -232,5 +239,37 @@ void generateWorld(GameMap &gameMap, int seed){
 
 #pragma endregion
 
+#pragma region fill trees 
+
+    for(auto x { 0 }; x < w; ++x){
+        if(getRandomChance(rng, 0.04)){
+            
+            for(auto y { 0 }; y < h; ++y){
+                auto type = gameMap.getBlock(x, y).type;
+                if(type == Block::air){
+                    continue;
+                }
+
+                if(type == Block::grassBlock){
+                    Vector2 spawnPos{(float)x, (float)y};
+
+                    spawnPos.x -= treeStructure.w / 2;
+                    spawnPos.y -= treeStructure.h;
+
+                    treeStructure.pasteIntoMap(gameMap, spawnPos);
+
+                    x += 3;
+
+                    break;
+                }else{
+                    break;
+                }
+
+
+            }
+        }
+    }
+
+#pragma endregion
 
 }
